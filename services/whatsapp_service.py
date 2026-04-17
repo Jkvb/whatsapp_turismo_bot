@@ -113,5 +113,8 @@ class WhatsappService(models.AbstractModel):
             'asking_description': 'Por favor envíame una foto de perfil de tu negocio.',
             'asking_profile_photo': '¡Listo! Tu registro quedó en revisión. Te avisaremos cuando esté aprobado.',
             'completed': 'Tu información ya fue registrada. Si quieres actualizar datos responde "actualizar".',
+            'cancelled': 'Proceso cancelado ✅. Si deseas empezar de nuevo, escribe "hola".',
+            'too_many_retries': 'Tuvimos varios intentos sin lograr avanzar. Cancelé este registro para evitar que se trabe. Escribe "hola" para iniciar otra vez.',
+            'asking_profile_photo_retry': 'Estoy esperando una *foto* de perfil del negocio. Si quieres detener el registro, responde "cancelar".',
         }
         return prompts.get(state, 'Gracias por tu mensaje. Te responderemos pronto.')

@@ -6,6 +6,9 @@ from odoo.http import request
 
 _logger = logging.getLogger(__name__)
 
+MAX_UNKNOWN_RETRIES = 5
+CANCEL_KEYWORDS = {'cancelar', 'cancel', 'salir', 'detener', 'stop'}
+
 
 class WhatsAppWebhookController(http.Controller):
 
@@ -252,11 +255,24 @@ class WhatsAppWebhookController(http.Controller):
     def _process_text_message(self, session, user_text, onboarding_service, whatsapp_service, payload_ctx):
         current_state = session.state
         provider = session.provider_id
+        normalized_text = (user_text or '').strip().lower()
 
         _logger.warning(
             'WA PROCESS START | session_id=%s | phone=%s | current_state=%s | provider_id=%s | text=%s',
             session.id, session.phone, current_state, provider.id if provider else False, user_text
         )
+
+        if normalized_text in CANCEL_KEYWORDS:
+            session.write({'active': False})
+            session.next_state(
+                current_state,
+                whatsapp_service.build_reply_for_state('cancelled')
+            )
+            _logger.warning(
+                'WA SESSION CANCELLED BY USER | session_id=%s | state=%s | text=%s',
+                session.id, current_state, user_text
+            )
+            return self._send_session_reply(session, whatsapp_service, payload_ctx)
 
         if current_state == 'start':
             session.next_state('asking_business_name', whatsapp_service.build_reply_for_state('start'))
@@ -382,13 +398,33 @@ class WhatsAppWebhookController(http.Controller):
             )
 
         else:
-            session.write({'retry_count': session.retry_count + 1})
+            retry_count = session.retry_count + 1
+            session.write({'retry_count': retry_count})
             _logger.warning(
                 'WA UNKNOWN INPUT | session_id=%s | state=%s | retry_count=%s | text=%s',
                 session.id, session.state, session.retry_count, user_text
             )
-            session.next_state(current_state, 'No entendí tu respuesta, por favor intenta de nuevo.')
+            if retry_count >= MAX_UNKNOWN_RETRIES:
+                session.write({'active': False})
+                session.next_state(
+                    current_state,
+                    whatsapp_service.build_reply_for_state('too_many_retries')
+                )
+                _logger.warning(
+                    'WA SESSION AUTO-CANCELLED | session_id=%s | state=%s | retry_count=%s',
+                    session.id, current_state, retry_count
+                )
+            elif current_state == 'asking_profile_photo':
+                session.next_state(
+                    current_state,
+                    whatsapp_service.build_reply_for_state('asking_profile_photo_retry')
+                )
+            else:
+                session.next_state(current_state, 'No entendí tu respuesta, por favor intenta de nuevo.')
 
+        self._send_session_reply(session, whatsapp_service, payload_ctx)
+
+    def _send_session_reply(self, session, whatsapp_service, payload_ctx):
         if session.last_bot_message:
             try:
                 _logger.warning(
