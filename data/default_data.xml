@@ -1,0 +1,30 @@
+<odoo noupdate="1">
+    <record id="param_whatsapp_verify_token" model="ir.config_parameter">
+        <field name="key">whatsapp_turismo_bot.whatsapp_verify_token</field>
+        <field name="value">TODO_VERIFY_TOKEN</field>
+    </record>
+    <record id="param_whatsapp_access_token" model="ir.config_parameter">
+        <field name="key">whatsapp_turismo_bot.whatsapp_access_token</field>
+        <field name="value">TODO_ACCESS_TOKEN</field>
+    </record>
+    <record id="param_whatsapp_phone_number_id" model="ir.config_parameter">
+        <field name="key">whatsapp_turismo_bot.whatsapp_phone_number_id</field>
+        <field name="value">TODO_PHONE_NUMBER_ID</field>
+    </record>
+    <record id="param_whatsapp_business_account_id" model="ir.config_parameter">
+        <field name="key">whatsapp_turismo_bot.whatsapp_business_account_id</field>
+        <field name="value">TODO_WABA_ID</field>
+    </record>
+    <record id="param_whatsapp_graph_api_version" model="ir.config_parameter">
+        <field name="key">whatsapp_turismo_bot.whatsapp_graph_api_version</field>
+        <field name="value">v20.0</field>
+    </record>
+    <record id="param_tourism_portal_base_url" model="ir.config_parameter">
+        <field name="key">whatsapp_turismo_bot.tourism_portal_base_url</field>
+        <field name="value">https://example.com</field>
+    </record>
+    <record id="param_tourism_default_country_code" model="ir.config_parameter">
+        <field name="key">whatsapp_turismo_bot.tourism_default_country_code</field>
+        <field name="value">57</field>
+    </record>
+</odoo>
