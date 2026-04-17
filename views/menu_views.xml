@@ -1,0 +1,32 @@
+<odoo>
+    <menuitem id="menu_tourism_review_root"
+              name="Turismo WhatsApp"
+              groups="whatsapp_turismo_bot.group_tourism_admin,whatsapp_turismo_bot.group_tourism_reviewer"
+              sequence="60"/>
+
+    <menuitem id="menu_tourism_review_provider"
+              name="Revisión de Prestadores"
+              parent="menu_tourism_review_root"
+              action="action_tourism_provider_pending_review"
+              sequence="10"/>
+
+    <menuitem id="menu_tourism_categories"
+              name="Categorías"
+              parent="menu_tourism_review_root"
+              action="action_tourism_provider_category"
+              groups="whatsapp_turismo_bot.group_tourism_admin"
+              sequence="15"/>
+
+    <menuitem id="menu_tourism_review_whatsapp_sessions"
+              name="Sesiones WhatsApp"
+              parent="menu_tourism_review_root"
+              action="action_whatsapp_bot_session"
+              groups="whatsapp_turismo_bot.group_tourism_admin"
+              sequence="20"/>
+
+    <menuitem id="menu_tourism_post"
+              name="Publicaciones"
+              parent="menu_tourism_review_root"
+              action="action_tourism_post"
+              sequence="30"/>
+</odoo>

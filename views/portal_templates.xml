@@ -1,0 +1,179 @@
+<odoo>
+    <template id="tourism_register_template" name="Tourism Register Form">
+        <t t-call="website.layout">
+            <div class="container my-5">
+                <h1 class="mb-3">Registro de Prestadores Turísticos</h1>
+                <p class="text-muted">Completa tus datos para iniciar revisión interna.</p>
+                <form action="/tourism/register/submit" method="post" enctype="multipart/form-data" class="row g-3">
+                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                    <div class="col-md-6">
+                        <label class="form-label">Nombre comercial</label>
+                        <input type="text" name="commercial_name" class="form-control" required="required"/>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Responsable</label>
+                        <input type="text" name="responsible_name" class="form-control" required="required"/>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Categoría</label>
+                        <select name="category_id" class="form-select" required="required">
+                            <option value="">Selecciona una categoría</option>
+                            <t t-foreach="categories" t-as="category">
+                                <option t-att-value="category.id"><t t-out="category.name"/></option>
+                            </t>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Teléfono</label>
+                        <input type="text" name="phone" class="form-control" required="required"/>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">WhatsApp</label>
+                        <input type="text" name="whatsapp_number" class="form-control"/>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Correo</label>
+                        <input type="email" name="email" class="form-control" required="required"/>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Ubicación</label>
+                        <input type="text" name="location_text" class="form-control" required="required"/>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Descripción</label>
+                        <textarea name="description" class="form-control" rows="4" required="required"/>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Foto de perfil</label>
+                        <input type="file" name="profile_image" accept="image/*" class="form-control" required="required"/>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Imagen de portada (opcional)</label>
+                        <input type="file" name="cover_image" accept="image/*" class="form-control"/>
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary">Enviar solicitud</button>
+                    </div>
+                </form>
+            </div>
+        </t>
+    </template>
+
+    <template id="tourism_register_success_template" name="Tourism Register Success">
+        <t t-call="website.layout">
+            <div class="container my-5">
+                <div class="alert alert-success">
+                    ¡Gracias! Recibimos tu registro y quedó en estado <strong>pendiente de revisión</strong>.
+                </div>
+                <a href="/tourism/feed" class="btn btn-outline-primary">Ver feed turístico</a>
+            </div>
+        </t>
+    </template>
+
+    <template id="tourism_my_profile_template" name="My Tourism Profile">
+        <t t-call="portal.portal_layout">
+            <div class="container my-4">
+                <h2>Mi perfil turístico</h2>
+                <t t-if="status_message == 'updated'">
+                    <div class="alert alert-info">Perfil actualizado correctamente.</div>
+                </t>
+                <t t-if="provider">
+                    <p><strong>Estado de aprobación:</strong> <t t-out="provider.approval_state"/></p>
+                    <p><strong>Estado de publicación:</strong> <t t-out="provider.publication_state"/></p>
+                    <form action="/my/tourism/profile/save" method="post" enctype="multipart/form-data" class="row g-3">
+                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                        <div class="col-md-6"><label class="form-label">Nombre comercial</label><input type="text" class="form-control" name="commercial_name" t-att-value="provider.commercial_name or ''"/></div>
+                        <div class="col-md-6"><label class="form-label">Responsable</label><input type="text" class="form-control" name="responsible_name" t-att-value="provider.responsible_name or ''"/></div>
+                        <div class="col-12"><label class="form-label">Descripción</label><textarea class="form-control" name="description" rows="4"><t t-out="provider.description or ''"/></textarea></div>
+                        <div class="col-md-6"><label class="form-label">Ubicación</label><input type="text" class="form-control" name="location_text" t-att-value="provider.location_text or ''"/></div>
+                        <div class="col-md-6"><label class="form-label">Sitio web</label><input type="url" class="form-control" name="website" t-att-value="provider.website or ''"/></div>
+                        <div class="col-md-4"><label class="form-label">Facebook</label><input type="url" class="form-control" name="facebook_url" t-att-value="provider.facebook_url or ''"/></div>
+                        <div class="col-md-4"><label class="form-label">Instagram</label><input type="url" class="form-control" name="instagram_url" t-att-value="provider.instagram_url or ''"/></div>
+                        <div class="col-md-4"><label class="form-label">TikTok</label><input type="url" class="form-control" name="tiktok_url" t-att-value="provider.tiktok_url or ''"/></div>
+                        <div class="col-md-6"><label class="form-label">Foto de perfil</label><input type="file" class="form-control" name="profile_image" accept="image/*"/></div>
+                        <div class="col-md-6"><label class="form-label">Portada</label><input type="file" class="form-control" name="cover_image" accept="image/*"/></div>
+                        <div class="col-12"><button type="submit" class="btn btn-primary">Guardar cambios</button></div>
+                    </form>
+                </t>
+                <t t-else="">
+                    <div class="alert alert-warning">Tu usuario aún no está vinculado a un prestador aprobado.</div>
+                </t>
+            </div>
+        </t>
+    </template>
+
+    <template id="tourism_my_posts_template" name="My Tourism Posts">
+        <t t-call="portal.portal_layout">
+            <div class="container my-4">
+                <h2>Mis publicaciones</h2>
+                <t t-if="status_message == 'created'">
+                    <div class="alert alert-success">Publicación creada correctamente.</div>
+                </t>
+                <t t-if="provider">
+                    <form action="/my/tourism/posts/create" method="post" enctype="multipart/form-data" class="card p-3 mb-4">
+                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                        <div class="mb-2"><label class="form-label">Título</label><input type="text" name="title" class="form-control" required="required"/></div>
+                        <div class="mb-2"><label class="form-label">Contenido</label><textarea name="content" class="form-control" rows="4" required="required"/></div>
+                        <div class="mb-2"><label class="form-label">Imagen</label><input type="file" name="image" accept="image/*" class="form-control"/></div>
+                        <div class="form-check mb-3"><input class="form-check-input" type="checkbox" name="publish_now" id="publish_now"/><label class="form-check-label" for="publish_now">Publicar ahora</label></div>
+                        <button type="submit" class="btn btn-primary">Crear publicación</button>
+                    </form>
+
+                    <div class="row g-3">
+                        <t t-foreach="posts" t-as="post">
+                            <div class="col-md-6">
+                                <div class="o_tourism_feed_card p-3 h-100">
+                                    <h5><t t-out="post.title"/></h5>
+                                    <small class="text-muted"><t t-out="post.state"/></small>
+                                    <p class="mt-2"><t t-out="post.content"/></p>
+                                </div>
+                            </div>
+                        </t>
+                    </div>
+                </t>
+            </div>
+        </t>
+    </template>
+
+    <template id="tourism_feed_template" name="Tourism Feed">
+        <t t-call="website.layout">
+            <div class="container my-5">
+                <h1>Feed turístico</h1>
+                <div class="row g-4 mt-1">
+                    <t t-foreach="posts" t-as="post">
+                        <div class="col-md-4">
+                            <div class="o_tourism_feed_card p-3 h-100 shadow-sm">
+                                <h5><t t-out="post.title"/></h5>
+                                <p class="text-muted mb-1">
+                                    <a t-att-href="'/tourism/provider/%s' % post.provider_id.id">
+                                        <t t-out="post.provider_id.commercial_name or post.provider_id.name"/>
+                                    </a>
+                                </p>
+                                <p><t t-out="post.content"/></p>
+                            </div>
+                        </div>
+                    </t>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <template id="tourism_provider_public_template" name="Tourism Provider Public Profile">
+        <t t-call="website.layout">
+            <div class="container my-5">
+                <h1><t t-out="provider.commercial_name or provider.name"/></h1>
+                <p class="lead"><t t-out="provider.description"/></p>
+                <p><strong>Ubicación:</strong> <t t-out="provider.location_text"/></p>
+                <h3 class="mt-4">Publicaciones</h3>
+                <ul class="list-group">
+                    <t t-foreach="posts" t-as="post">
+                        <li class="list-group-item">
+                            <h6><t t-out="post.title"/></h6>
+                            <p class="mb-0"><t t-out="post.content"/></p>
+                        </li>
+                    </t>
+                </ul>
+            </div>
+        </t>
+    </template>
+</odoo>
