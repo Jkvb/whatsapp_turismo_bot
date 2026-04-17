@@ -1,0 +1,49 @@
+<odoo>
+    <record id="view_tourism_post_tree" model="ir.ui.view">
+        <field name="name">tourism.post.tree</field>
+        <field name="model">tourism.post</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="title"/>
+                <field name="provider_id"/>
+                <field name="author_partner_id"/>
+                <field name="state"/>
+                <field name="published_date"/>
+                <field name="active"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_tourism_post_form" model="ir.ui.view">
+        <field name="name">tourism.post.form</field>
+        <field name="model">tourism.post</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_publish" type="object" string="Publicar" class="btn-primary" invisible="state == 'published'"/>
+                    <button name="action_archive" type="object" string="Archivar" invisible="state == 'archived'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,published,archived"/>
+                </header>
+                <sheet>
+                    <group>
+                        <field name="provider_id"/>
+                        <field name="author_partner_id"/>
+                        <field name="title"/>
+                        <field name="published_date" readonly="1"/>
+                        <field name="active"/>
+                    </group>
+                    <group>
+                        <field name="content"/>
+                        <field name="image" widget="image"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_tourism_post" model="ir.actions.act_window">
+        <field name="name">Publicaciones Turísticas</field>
+        <field name="res_model">tourism.post</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+</odoo>

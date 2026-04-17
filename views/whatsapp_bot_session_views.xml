@@ -1,0 +1,46 @@
+<odoo>
+    <record id="view_whatsapp_bot_session_tree" model="ir.ui.view">
+        <field name="name">whatsapp.bot.session.tree</field>
+        <field name="model">whatsapp.bot.session</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="phone"/>
+                <field name="provider_id"/>
+                <field name="state"/>
+                <field name="retry_count"/>
+                <field name="active"/>
+                <field name="last_message_at"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_whatsapp_bot_session_form" model="ir.ui.view">
+        <field name="name">whatsapp.bot.session.form</field>
+        <field name="model">whatsapp.bot.session</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="phone"/>
+                        <field name="provider_id"/>
+                        <field name="state"/>
+                        <field name="active"/>
+                        <field name="retry_count"/>
+                        <field name="last_message_at"/>
+                    </group>
+                    <group>
+                        <field name="last_user_message"/>
+                        <field name="last_bot_message"/>
+                        <field name="last_payload" widget="json"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_whatsapp_bot_session" model="ir.actions.act_window">
+        <field name="name">Sesiones WhatsApp</field>
+        <field name="res_model">whatsapp.bot.session</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+</odoo>

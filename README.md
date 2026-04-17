@@ -1,300 +1,147 @@
 # whatsapp_turismo_bot
 
-Integración de **WhatsApp (Meta Cloud API)** con **Odoo 18** para el onboarding de prestadores turísticos, su aprobación interna en Odoo y la activación posterior de su acceso al portal web.
+Módulo Odoo 18 Community para onboarding de prestadores turísticos con **doble entrada (WhatsApp + Web)**, aprobación interna y autogestión de perfil/publicaciones en portal.
 
-> **Regla principal del negocio:**  
-> El registro inicial por web está prohibido.  
-> El alta inicial del prestador se realiza **únicamente por WhatsApp**.
+## Propósito
 
----
+`whatsapp_turismo_bot` extiende el ecosistema existente (`tourism_provider_portal`) con una arquitectura modular:
 
-## Objetivo
+- Entrada principal por **WhatsApp** (Meta Cloud API).
+- Entrada alternativa por **formulario web**.
+- Núcleo de negocio compartido en servicio de onboarding (`tourism.onboarding.service`).
+- Flujo de aprobación/rechazo para usuarios internos.
+- Habilitación de acceso portal únicamente para prestadores aprobados.
 
-Este proyecto extiende el ecosistema de turismo para que el flujo sea:
+## Supuestos sobre `tourism_provider_portal`
 
-1. El prestador escribe por **WhatsApp**
-2. El **chatbot** recopila su información
-3. Odoo crea/actualiza el registro del prestador
-4. Un administrador lo **aprueba** desde Odoo
-5. Después de ser aprobado, el sistema le envía un enlace seguro para **activar su acceso web**
-6. Ya dentro del portal, puede administrar su perfil y publicar contenido
+Este módulo reutiliza y/o extiende:
 
----
+- modelo `tourism.provider`
+- modelo `tourism.provider.category`
+- vistas base: `view_tourism_provider_tree`, `view_tourism_provider_form`, `view_tourism_provider_search`
+- menú raíz: `tourism_provider_portal.menu_tourism_root`
 
-## Relación con otros módulos
+> Si en tu implementación esos IDs cambian, ajusta los `ref` XML.
 
-Este módulo está pensado para trabajar junto con:
+## Flujo WhatsApp (principal)
 
-- `tourism_provider_portal`  
-  Portal web turístico, perfiles, publicaciones, feed y vistas públicas
+1. Meta envía eventos a `GET/POST /whatsapp/webhook`.
+2. Se verifica token en GET (`hub.verify_token`).
+3. En POST se procesa payload, se identifica remitente y se crea/recupera `whatsapp.bot.session`.
+4. La máquina de estados guía el onboarding.
+5. Los datos se consolidan en `tourism.provider` vía `tourism.onboarding.service`.
+6. El prestador queda en `approval_state = pending`.
 
-Este módulo **no reemplaza** al portal.  
-Su función es agregar la capa de:
-
-- conversación por WhatsApp
-- webhook con Meta Cloud API
-- máquina de estados del chatbot
-- aprobación y activación de acceso
-
----
-
-## Flujo funcional
-
-## 1. Registro inicial por WhatsApp
-
-El usuario inicia conversación con el número oficial de WhatsApp del proyecto.
-
-El bot sigue una máquina de estados para capturar los datos mínimos:
-
-- nombre del negocio o prestador
-- nombre del responsable
-- categoría
-- teléfono
-- ubicación
-- foto de perfil
-
-Cuando el flujo termina:
-
-- se crea o actualiza el registro en Odoo
-- el prestador queda en estado **pending**
-- se notifica que su solicitud está en revisión
-
----
-
-## 2. Revisión y aprobación en Odoo
-
-Desde el backend de Odoo, el comité o administrador revisa a los prestadores pendientes.
-
-Opciones:
-
-- **Aprobar**
-- **Rechazar**
-
-Cuando se aprueba:
-
-- el prestador cambia a estado `approved`
-- se crea un usuario portal si no existe
-- se genera un **token de activación**
-- se envía un mensaje de WhatsApp con un enlace seguro para activar su acceso web
-
----
-
-## 3. Activación del acceso web
-
-El usuario abre el enlace recibido por WhatsApp.
-
-Si el token es válido:
-
-- define su contraseña
-- activa su acceso web
-- queda vinculado con su usuario portal
-- entra al portal para administrar su perfil
-
----
-
-## 4. Actualización posterior por chatbot
-
-Una vez registrado, el mismo chatbot puede ayudarle a actualizar:
-
-- descripción
-- teléfono
-- ubicación
-- foto de perfil
-- portada
-- otros campos permitidos
-
-Dependiendo de la configuración del negocio, ciertos cambios pueden volver a dejar el perfil en revisión.
-
----
-
-# Arquitectura
-
-## Componentes principales
-
-### 1. Webhook de WhatsApp
-Controlador que recibe los eventos de Meta Cloud API.
-
-Funciones:
-
-- verificación del webhook
-- recepción de mensajes entrantes
-- procesamiento del payload
-- respuesta automática
-- descarga de media
-
-### 2. Máquina de estados conversacional
-Controla en qué paso va cada usuario durante el onboarding o actualización.
-
-### 3. Persistencia en Odoo ORM
-Toda la información recopilada por el bot se guarda mediante el ORM de Odoo.
-
-### 4. Flujo de aprobación
-Permite aprobar o rechazar prestadores desde el backend.
-
-### 5. Activación de acceso web
-Genera enlaces seguros de un solo uso para que el prestador cree su contraseña.
-
----
-
-# Modelos principales
-
-## `tourism.provider`
-Modelo central del prestador turístico.
-
-Campos sugeridos o utilizados:
-
-- `name`
-- `responsible_name`
-- `category_id`
-- `phone`
-- `whatsapp_number`
-- `description`
-- `location_text`
-- `profile_image_1920`
-- `cover_image`
-- `state`
-- `portal_user_id`
-- `onboarding_source`
-
-Estados típicos:
-
-- `draft`
-- `pending`
-- `approved`
-- `rejected`
-- `published`
-
----
-
-## `whatsapp.bot.session`
-Modelo para controlar la conversación del chatbot.
-
-Campos sugeridos:
-
-- `phone`
-- `provider_id`
-- `state`
-- `last_message_at`
-- `last_payload`
-- `active`
-
-Estados sugeridos:
+Estados conversacionales implementados:
 
 - `start`
 - `asking_business_name`
 - `asking_responsible_name`
 - `asking_category`
 - `asking_phone`
+- `asking_email`
 - `asking_location`
+- `asking_description`
 - `asking_profile_photo`
 - `completed`
 
----
+## Flujo Web
 
-## `tourism.portal.activation`
-Modelo para administrar enlaces de activación.
+1. Prestador accede a `/tourism/register`.
+2. Completa formulario responsivo y simple.
+3. `/tourism/register/submit` crea/actualiza `tourism.provider` por servicio central.
+4. Se fija `onboarding_source = web` y `approval_state = pending`.
+5. Se muestra confirmación de recepción.
 
-Campos sugeridos:
+## Flujo de aprobación interna
 
-- `provider_id`
-- `user_id`
-- `token`
-- `expires_at`
-- `used`
+Desde backend:
 
----
+- Acción `action_approve_provider`
+  - crea usuario portal si no existe
+  - vincula `portal_user_id`
+  - cambia `approval_state = approved`
+- Acción `action_reject_provider`
+  - cambia `approval_state = rejected`
+  - guarda observaciones en `approval_notes`
 
-## `tourism.post`
-Publicaciones del prestador dentro del portal.
+Servicio responsable: `provider.approval.service`.
 
-Campos típicos:
+## Portal del prestador
 
-- `author_id`
-- `content`
-- `image`
-- `published`
-- `create_date`
+Rutas:
 
----
+- `/my/tourism/profile`
+- `/my/tourism/posts`
+- `/tourism/feed`
+- `/tourism/provider/<id>`
 
-# Controladores
+Capacidades:
 
-## `/whatsapp/webhook`
-Webhook principal para Meta Cloud API.
+- editar perfil (solo propio y aprobado)
+- actualizar imagen de perfil y portada
+- crear posts en borrador o publicar
+- visualizar feed público (publicado + proveedor aprobado)
 
-### GET
-Usado para la verificación inicial de Meta.
+## Seguridad
 
-### POST
-Recibe mensajes y eventos.
+Grupos:
 
-Responsabilidades:
+- `group_tourism_admin`
+- `group_tourism_reviewer`
+- `group_tourism_portal_user`
 
-- identificar número de teléfono
-- localizar o crear sesión
-- mover la máquina de estados
-- guardar datos en Odoo
-- descargar imágenes
-- responder por WhatsApp
+Reglas incluidas:
 
----
+- portal solo edita su propio `tourism.provider`
+- portal solo administra sus propios `tourism.post`
+- público solo ve posts publicados de proveedores aprobados
+- sesiones de bot para grupos internos
 
-## `/tourism/activate/<token>`
-Ruta pública para activar acceso web.
+## Parametrización (`ir.config_parameter`)
 
-Responsabilidades:
+- `whatsapp_turismo_bot.whatsapp_verify_token`
+- `whatsapp_turismo_bot.whatsapp_access_token`
+- `whatsapp_turismo_bot.whatsapp_phone_number_id`
+- `whatsapp_turismo_bot.whatsapp_business_account_id`
+- `whatsapp_turismo_bot.whatsapp_graph_api_version`
+- `whatsapp_turismo_bot.tourism_portal_base_url`
+- `whatsapp_turismo_bot.tourism_default_country_code`
 
-- validar token
-- verificar expiración
-- permitir crear contraseña
-- marcar token como usado
-- redirigir al portal
+## Servicios
 
----
+- `whatsapp.service`
+  - envío de mensajes
+  - parseo de payloads
+  - descarga de media
+- `tourism.onboarding.service`
+  - creación/actualización unificada de providers
+  - normalización base de datos web/WhatsApp
+- `provider.approval.service`
+  - aprobar/rechazar
+  - crear y vincular usuario portal
+- `tourism.media.service`
+  - persistencia de imágenes de WhatsApp en campos binarios
 
-## Rutas del portal
-Estas rutas normalmente viven en `tourism_provider_portal`, pero este módulo se integra con ellas:
+## Instalación
 
-- perfil del prestador
-- edición del perfil
-- feed turístico
-- creación de publicaciones
+1. Copia el addon en tu ruta de addons.
+2. Actualiza lista de apps.
+3. Instala `whatsapp_turismo_bot`.
+4. Ajusta parámetros en **Ajustes > Parámetros del sistema**.
 
----
+## Pruebas recomendadas
 
-# Estructura sugerida del módulo
+- Verificar webhook de Meta con token correcto/incorrecto.
+- Simular payload `text` y `image` de WhatsApp.
+- Registrar prestador por web y confirmar `pending`.
+- Aprobar y validar creación de usuario portal.
+- Acceder con usuario portal y editar perfil propio.
+- Crear post y revisar visualización en `/tourism/feed`.
 
-```text
-whatsapp_turismo_bot/
-├── __init__.py
-├── __manifest__.py
-├── README.md
-├── controllers/
-│   ├── __init__.py
-│   ├── whatsapp_webhook.py
-│   └── portal_activation.py
-├── models/
-│   ├── __init__.py
-│   ├── tourism_provider.py
-│   ├── whatsapp_bot_session.py
-│   ├── tourism_portal_activation.py
-│   └── tourism_post.py
-├── services/
-│   ├── __init__.py
-│   ├── whatsapp_service.py
-│   ├── onboarding_service.py
-│   └── media_service.py
-├── security/
-│   ├── ir.model.access.csv
-│   └── security.xml
-├── views/
-│   ├── tourism_provider_views.xml
-│   ├── whatsapp_bot_session_views.xml
-│   ├── tourism_portal_activation_views.xml
-│   └── menu_views.xml
-├── data/
-│   ├── cron.xml
-│   └── whatsapp_templates.xml
-└── static/
-    └── description/
-        └── icon.png
+## TODO técnicos planteados
+
+- endurecer validaciones de email/teléfono por país
+- agregar plantillas WhatsApp aprobadas por Meta
+- agregar reintentos/backoff y bitácora de errores HTTP
+- soporte SEO con slug para `/tourism/provider/<slug>`
