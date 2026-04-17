@@ -19,7 +19,7 @@
 
     <record id="tourism_provider_rule_portal_own" model="ir.rule">
         <field name="name">Tourism Provider Portal Own</field>
-        <field name="model_id" ref="tourism_provider_portal.model_tourism_provider"/>
+        <field name="model_id" ref="model_tourism_provider"/>
         <field name="groups" eval="[(4, ref('whatsapp_turismo_bot.group_tourism_portal_user'))]"/>
         <field name="domain_force">[('portal_user_id', '=', user.id)]</field>
     </record>
