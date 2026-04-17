@@ -9,7 +9,11 @@ class ProviderApprovalService(models.AbstractModel):
         return self.env.ref('base.group_portal')
 
     def _tourism_portal_group(self):
-        return self.env.ref('whatsapp_turismo_bot.group_tourism_portal_user')
+        try:
+            return self.env.ref('whatsapp_turismo_bot.group_tourism_portal_user')
+        except ValueError:
+            module_name = self._module
+            return self.env.ref(f'{module_name}.group_tourism_portal_user')
 
     def _create_portal_user(self, provider):
         partner = provider.partner_id or self.env['res.partner'].sudo().create({

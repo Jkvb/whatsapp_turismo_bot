@@ -20,14 +20,14 @@
     <record id="tourism_provider_rule_portal_own" model="ir.rule">
         <field name="name">Tourism Provider Portal Own</field>
         <field name="model_id" ref="model_tourism_provider"/>
-        <field name="groups" eval="[(4, ref('whatsapp_turismo_bot.group_tourism_portal_user'))]"/>
+        <field name="groups" eval="[(4, ref('group_tourism_portal_user'))]"/>
         <field name="domain_force">[('portal_user_id', '=', user.id)]</field>
     </record>
 
     <record id="tourism_post_rule_portal_own" model="ir.rule">
         <field name="name">Tourism Post Portal Own</field>
         <field name="model_id" ref="model_tourism_post"/>
-        <field name="groups" eval="[(4, ref('whatsapp_turismo_bot.group_tourism_portal_user'))]"/>
+        <field name="groups" eval="[(4, ref('group_tourism_portal_user'))]"/>
         <field name="domain_force">[('provider_id.portal_user_id', '=', user.id)]</field>
     </record>
 
