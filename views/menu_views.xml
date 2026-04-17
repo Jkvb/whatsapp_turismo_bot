@@ -1,7 +1,6 @@
 <odoo>
     <menuitem id="menu_tourism_review_root"
               name="Turismo WhatsApp"
-              parent="tourism_provider_portal.menu_tourism_root"
               groups="whatsapp_turismo_bot.group_tourism_admin,whatsapp_turismo_bot.group_tourism_reviewer"
               sequence="60"/>
 
@@ -10,6 +9,13 @@
               parent="menu_tourism_review_root"
               action="action_tourism_provider_pending_review"
               sequence="10"/>
+
+    <menuitem id="menu_tourism_categories"
+              name="Categorías"
+              parent="menu_tourism_review_root"
+              action="action_tourism_provider_category"
+              groups="whatsapp_turismo_bot.group_tourism_admin"
+              sequence="15"/>
 
     <menuitem id="menu_tourism_review_whatsapp_sessions"
               name="Sesiones WhatsApp"

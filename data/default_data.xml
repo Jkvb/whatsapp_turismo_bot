@@ -27,4 +27,14 @@
         <field name="key">whatsapp_turismo_bot.tourism_default_country_code</field>
         <field name="value">57</field>
     </record>
+
+    <record id="tourism_provider_category_hotel" model="tourism.provider.category">
+        <field name="name">Hotel</field>
+    </record>
+    <record id="tourism_provider_category_restaurant" model="tourism.provider.category">
+        <field name="name">Restaurante</field>
+    </record>
+    <record id="tourism_provider_category_guia" model="tourism.provider.category">
+        <field name="name">Guía turístico</field>
+    </record>
 </odoo>

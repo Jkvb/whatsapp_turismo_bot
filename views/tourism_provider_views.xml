@@ -1,55 +1,99 @@
 <odoo>
-    <record id="view_tourism_provider_tree_inherit_whatsapp" model="ir.ui.view">
-        <field name="name">tourism.provider.tree.whatsapp</field>
+    <record id="view_tourism_provider_tree" model="ir.ui.view">
+        <field name="name">tourism.provider.tree</field>
         <field name="model">tourism.provider</field>
-        <field name="inherit_id" ref="tourism_provider_portal.view_tourism_provider_tree"/>
         <field name="arch" type="xml">
-            <xpath expr="//tree" position="inside">
+            <tree>
+                <field name="name"/>
+                <field name="commercial_name"/>
+                <field name="category_id"/>
+                <field name="whatsapp_number"/>
                 <field name="onboarding_source"/>
                 <field name="approval_state"/>
                 <field name="publication_state"/>
                 <field name="portal_user_id"/>
-            </xpath>
+                <field name="active"/>
+            </tree>
         </field>
     </record>
 
-    <record id="view_tourism_provider_form_inherit_whatsapp" model="ir.ui.view">
-        <field name="name">tourism.provider.form.whatsapp</field>
+    <record id="view_tourism_provider_form" model="ir.ui.view">
+        <field name="name">tourism.provider.form</field>
         <field name="model">tourism.provider</field>
-        <field name="inherit_id" ref="tourism_provider_portal.view_tourism_provider_form"/>
         <field name="arch" type="xml">
-            <xpath expr="//form/header" position="inside">
-                <button name="action_approve_provider" type="object" string="Aprobar" class="btn-primary" groups="whatsapp_turismo_bot.group_tourism_admin,whatsapp_turismo_bot.group_tourism_reviewer" invisible="approval_state == 'approved'"/>
-                <button name="action_reject_provider" type="object" string="Rechazar" class="btn-secondary" groups="whatsapp_turismo_bot.group_tourism_admin,whatsapp_turismo_bot.group_tourism_reviewer" invisible="approval_state == 'rejected'"/>
-                <button name="action_request_changes" type="object" string="Solicitar cambios" groups="whatsapp_turismo_bot.group_tourism_admin,whatsapp_turismo_bot.group_tourism_reviewer"/>
-                <field name="approval_state" widget="statusbar" statusbar_visible="draft,pending,approved,rejected"/>
-            </xpath>
-            <xpath expr="//form/sheet" position="inside">
-                <group string="Onboarding">
-                    <field name="onboarding_source"/>
-                    <field name="portal_user_id" readonly="1"/>
-                    <field name="approval_notes"/>
-                    <field name="publication_state"/>
-                    <field name="is_published"/>
-                    <field name="last_profile_update_request_date" readonly="1"/>
-                </group>
-            </xpath>
+            <form>
+                <header>
+                    <button name="action_approve_provider" type="object" string="Aprobar" class="btn-primary" groups="whatsapp_turismo_bot.group_tourism_admin,whatsapp_turismo_bot.group_tourism_reviewer" invisible="approval_state == 'approved'"/>
+                    <button name="action_reject_provider" type="object" string="Rechazar" class="btn-secondary" groups="whatsapp_turismo_bot.group_tourism_admin,whatsapp_turismo_bot.group_tourism_reviewer" invisible="approval_state == 'rejected'"/>
+                    <button name="action_request_changes" type="object" string="Solicitar cambios" groups="whatsapp_turismo_bot.group_tourism_admin,whatsapp_turismo_bot.group_tourism_reviewer"/>
+                    <field name="approval_state" widget="statusbar" statusbar_visible="draft,pending,approved,rejected"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group string="Datos principales">
+                            <field name="name"/>
+                            <field name="commercial_name"/>
+                            <field name="responsible_name"/>
+                            <field name="category_id"/>
+                            <field name="description"/>
+                        </group>
+                        <group string="Contacto">
+                            <field name="whatsapp_number"/>
+                            <field name="phone"/>
+                            <field name="mobile"/>
+                            <field name="email"/>
+                            <field name="location_text"/>
+                            <field name="address"/>
+                            <field name="municipality"/>
+                            <field name="state_name"/>
+                            <field name="country_id"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Portal y revisión">
+                            <field name="onboarding_source"/>
+                            <field name="portal_user_id" readonly="1"/>
+                            <field name="approval_notes"/>
+                            <field name="publication_state"/>
+                            <field name="is_published"/>
+                            <field name="last_profile_update_request_date" readonly="1"/>
+                            <field name="active"/>
+                        </group>
+                        <group string="Redes e imágenes">
+                            <field name="website"/>
+                            <field name="facebook_url"/>
+                            <field name="instagram_url"/>
+                            <field name="tiktok_url"/>
+                            <field name="profile_image_1920" widget="image"/>
+                            <field name="cover_image" widget="image"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
         </field>
     </record>
 
-    <record id="view_tourism_provider_search_inherit_whatsapp" model="ir.ui.view">
-        <field name="name">tourism.provider.search.whatsapp</field>
+    <record id="view_tourism_provider_search" model="ir.ui.view">
+        <field name="name">tourism.provider.search</field>
         <field name="model">tourism.provider</field>
-        <field name="inherit_id" ref="tourism_provider_portal.view_tourism_provider_search"/>
         <field name="arch" type="xml">
-            <xpath expr="//search" position="inside">
+            <search>
+                <field name="name"/>
+                <field name="commercial_name"/>
+                <field name="whatsapp_number"/>
+                <field name="approval_state"/>
+                <field name="onboarding_source"/>
                 <filter string="Pendientes" name="pending" domain="[('approval_state', '=', 'pending')]"/>
                 <filter string="Aprobados" name="approved" domain="[('approval_state', '=', 'approved')]"/>
                 <filter string="Rechazados" name="rejected" domain="[('approval_state', '=', 'rejected')]"/>
                 <separator/>
                 <filter string="Onboarding WhatsApp" name="source_whatsapp" domain="[('onboarding_source', '=', 'whatsapp')]"/>
                 <filter string="Onboarding Web" name="source_web" domain="[('onboarding_source', '=', 'web')]"/>
-            </xpath>
+                <group expand="0" string="Agrupar por">
+                    <filter string="Categoría" name="group_category" context="{'group_by':'category_id'}"/>
+                    <filter string="Aprobación" name="group_approval" context="{'group_by':'approval_state'}"/>
+                </group>
+            </search>
         </field>
     </record>
 
@@ -58,5 +102,38 @@
         <field name="res_model">tourism.provider</field>
         <field name="view_mode">tree,form</field>
         <field name="domain">[('approval_state', 'in', ('pending', 'rejected', 'draft'))]</field>
+    </record>
+
+    <record id="view_tourism_provider_category_tree" model="ir.ui.view">
+        <field name="name">tourism.provider.category.tree</field>
+        <field name="model">tourism.provider.category</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+                <field name="active"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_tourism_provider_category_form" model="ir.ui.view">
+        <field name="name">tourism.provider.category.form</field>
+        <field name="model">tourism.provider.category</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="description"/>
+                        <field name="active"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_tourism_provider_category" model="ir.actions.act_window">
+        <field name="name">Categorías de Prestadores</field>
+        <field name="res_model">tourism.provider.category</field>
+        <field name="view_mode">tree,form</field>
     </record>
 </odoo>

@@ -11,7 +11,6 @@
         'mail',
         'portal',
         'website',
-        'tourism_provider_portal',
     ],
     'data': [
         'security/security.xml',
