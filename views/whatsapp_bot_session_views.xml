@@ -1,16 +1,16 @@
 <odoo>
-    <record id="view_whatsapp_bot_session_tree" model="ir.ui.view">
-        <field name="name">whatsapp.bot.session.tree</field>
+    <record id="view_whatsapp_bot_session_list" model="ir.ui.view">
+        <field name="name">whatsapp.bot.session.list</field>
         <field name="model">whatsapp.bot.session</field>
         <field name="arch" type="xml">
-            <tree>
+            <list>
                 <field name="phone"/>
                 <field name="provider_id"/>
                 <field name="state"/>
                 <field name="retry_count"/>
                 <field name="active"/>
                 <field name="last_message_at"/>
-            </tree>
+            </list>
         </field>
     </record>
 
@@ -41,6 +41,6 @@
     <record id="action_whatsapp_bot_session" model="ir.actions.act_window">
         <field name="name">Sesiones WhatsApp</field>
         <field name="res_model">whatsapp.bot.session</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
     </record>
 </odoo>

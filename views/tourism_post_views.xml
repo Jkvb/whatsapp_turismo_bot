@@ -1,16 +1,16 @@
 <odoo>
-    <record id="view_tourism_post_tree" model="ir.ui.view">
-        <field name="name">tourism.post.tree</field>
+    <record id="view_tourism_post_list" model="ir.ui.view">
+        <field name="name">tourism.post.list</field>
         <field name="model">tourism.post</field>
         <field name="arch" type="xml">
-            <tree>
+            <list>
                 <field name="title"/>
                 <field name="provider_id"/>
                 <field name="author_partner_id"/>
                 <field name="state"/>
                 <field name="published_date"/>
                 <field name="active"/>
-            </tree>
+            </list>
         </field>
     </record>
 
@@ -44,6 +44,6 @@
     <record id="action_tourism_post" model="ir.actions.act_window">
         <field name="name">Publicaciones Turísticas</field>
         <field name="res_model">tourism.post</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
     </record>
 </odoo>

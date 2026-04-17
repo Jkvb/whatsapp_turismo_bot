@@ -18,7 +18,7 @@ Este módulo reutiliza y/o extiende:
 
 - modelo `tourism.provider`
 - modelo `tourism.provider.category`
-- vistas base: `view_tourism_provider_tree`, `view_tourism_provider_form`, `view_tourism_provider_search`
+- vistas base: `view_tourism_provider_list`, `view_tourism_provider_form`, `view_tourism_provider_search`
 - menú raíz: `tourism_provider_portal.menu_tourism_root`
 
 > Si en tu implementación esos IDs cambian, ajusta los `ref` XML.
