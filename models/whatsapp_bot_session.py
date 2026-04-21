@@ -30,6 +30,8 @@ class WhatsappBotSession(models.Model):
     last_user_message = fields.Text()
     last_bot_message = fields.Text()
     retry_count = fields.Integer(default=0)
+    category_options = fields.Json()
+    last_validation_error = fields.Char()
 
     _sql_constraints = [
         ('session_phone_active_unique', 'unique(phone, active)', 'Ya existe una sesión activa para este número.'),

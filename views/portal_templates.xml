@@ -62,10 +62,17 @@
     <template id="tourism_register_success_template" name="Tourism Register Success">
         <t t-call="website.layout">
             <div class="container my-5">
-                <div class="alert alert-success">
-                    ¡Gracias! Recibimos tu registro y quedó en estado <strong>pendiente de revisión</strong>.
+                <div class="alert alert-success shadow-sm">
+                    <h5 class="mb-2">¡Gracias! Recibimos tu registro.</h5>
+                    Tu solicitud quedó en estado <strong>pendiente de revisión</strong>.
                 </div>
-                <a href="/tourism/feed" class="btn btn-outline-primary">Ver feed turístico</a>
+                <div class="card border-0 shadow-sm p-3 mb-3">
+                    <p class="mb-2"><strong>Tu perfil público base:</strong></p>
+                    <a t-att-href="profile_url" class="text-break"><t t-out="profile_url"/></a>
+                    <small class="text-muted d-block mt-2">Este enlace se verá completo cuando seas aprobado.</small>
+                </div>
+                <a href="/tourism/feed" class="btn btn-outline-primary me-2">Ver feed turístico</a>
+                <a t-att-href="profile_url" class="btn btn-primary">Ir a mi perfil público</a>
             </div>
         </t>
     </template>
@@ -137,14 +144,21 @@
 
     <template id="tourism_feed_template" name="Tourism Feed">
         <t t-call="website.layout">
+            <section class="o_tourism_hero">
+                <div class="container py-5">
+                    <h1 class="display-6 fw-bold mb-2">Descubre experiencias turísticas increíbles</h1>
+                    <p class="mb-0">Prestadores verificados, publicaciones recientes y perfiles profesionales en un solo lugar.</p>
+                </div>
+            </section>
             <div class="container my-5">
-                <h1>Feed turístico</h1>
+                <h2 class="mb-3">Feed turístico</h2>
                 <div class="row g-4 mt-1">
                     <t t-foreach="posts" t-as="post">
                         <div class="col-md-4">
-                            <div class="o_tourism_feed_card p-3 h-100 shadow-sm">
-                                <h5><t t-out="post.title"/></h5>
-                                <p class="text-muted mb-1">
+                            <div class="o_tourism_feed_card p-4 h-100 shadow-sm">
+                                <span class="badge text-bg-success mb-2">Verificado</span>
+                                <h5 class="fw-semibold"><t t-out="post.title"/></h5>
+                                <p class="text-muted mb-2">
                                     <a t-att-href="'/tourism/provider/%s' % post.provider_id.id">
                                         <t t-out="post.provider_id.commercial_name or post.provider_id.name"/>
                                     </a>
@@ -161,9 +175,11 @@
     <template id="tourism_provider_public_template" name="Tourism Provider Public Profile">
         <t t-call="website.layout">
             <div class="container my-5">
-                <h1><t t-out="provider.commercial_name or provider.name"/></h1>
-                <p class="lead"><t t-out="provider.description"/></p>
-                <p><strong>Ubicación:</strong> <t t-out="provider.location_text"/></p>
+                <div class="card border-0 shadow-sm p-4 mb-4">
+                    <h1 class="mb-1"><t t-out="provider.commercial_name or provider.name"/></h1>
+                    <p class="lead mb-2"><t t-out="provider.description"/></p>
+                    <p class="mb-0"><strong>Ubicación:</strong> <t t-out="provider.location_text"/></p>
+                </div>
                 <h3 class="mt-4">Publicaciones</h3>
                 <ul class="list-group">
                     <t t-foreach="posts" t-as="post">

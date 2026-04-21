@@ -1,7 +1,7 @@
 <odoo>
     <menuitem id="menu_tourism_review_root"
               name="Turismo WhatsApp"
-              groups="whatsapp_turismo_bot.group_tourism_admin,whatsapp_turismo_bot.group_tourism_reviewer"
+              groups="whatsapp_turismo_bot.group_tourism_admin,whatsapp_turismo_bot.group_tourism_reviewer,whatsapp_turismo_bot.group_tourism_approver"
               sequence="60"/>
 
     <menuitem id="menu_tourism_review_provider"

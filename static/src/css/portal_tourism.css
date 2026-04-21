@@ -1,4 +1,16 @@
 .o_tourism_feed_card {
     border: 1px solid #e9ecef;
     border-radius: 0.75rem;
+    background: #fff;
+    transition: transform .2s ease, box-shadow .2s ease;
+}
+
+.o_tourism_feed_card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 30px rgba(17, 24, 39, 0.12);
+}
+
+.o_tourism_hero {
+    background: linear-gradient(135deg, #0d6efd, #20c997);
+    color: #fff;
 }

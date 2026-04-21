@@ -1,11 +1,15 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_tourism_provider_admin,tourism.provider admin,model_tourism_provider,group_tourism_admin,1,1,1,1
 access_tourism_provider_reviewer,tourism.provider reviewer,model_tourism_provider,group_tourism_reviewer,1,1,1,0
+access_tourism_provider_approver,tourism.provider approver,model_tourism_provider,group_tourism_approver,1,1,0,0
 access_tourism_provider_portal,tourism.provider portal,model_tourism_provider,group_tourism_portal_user,1,1,0,0
 access_tourism_provider_category_admin,tourism.provider.category admin,model_tourism_provider_category,group_tourism_admin,1,1,1,1
 access_tourism_provider_category_reviewer,tourism.provider.category reviewer,model_tourism_provider_category,group_tourism_reviewer,1,0,0,0
+access_tourism_provider_category_approver,tourism.provider.category approver,model_tourism_provider_category,group_tourism_approver,1,0,0,0
 access_whatsapp_bot_session_admin,whatsapp.bot.session admin,model_whatsapp_bot_session,group_tourism_admin,1,1,1,1
 access_whatsapp_bot_session_reviewer,whatsapp.bot.session reviewer,model_whatsapp_bot_session,group_tourism_reviewer,1,0,0,0
+access_whatsapp_bot_session_approver,whatsapp.bot.session approver,model_whatsapp_bot_session,group_tourism_approver,1,0,0,0
 access_tourism_post_admin,tourism.post admin,model_tourism_post,group_tourism_admin,1,1,1,1
 access_tourism_post_reviewer,tourism.post reviewer,model_tourism_post,group_tourism_reviewer,1,1,1,0
+access_tourism_post_approver,tourism.post approver,model_tourism_post,group_tourism_approver,1,1,0,0
 access_tourism_post_portal,tourism.post portal,model_tourism_post,group_tourism_portal_user,1,1,1,0

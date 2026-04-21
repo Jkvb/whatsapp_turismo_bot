@@ -37,6 +37,12 @@ class TourismRegistrationController(http.Controller):
         if cover_image and getattr(cover_image, 'read', None):
             vals['cover_image'] = base64.b64encode(cover_image.read())
 
-        request.env['tourism.onboarding.service'].sudo().create_or_update_provider(vals, source='web')
+        provider = request.env['tourism.onboarding.service'].sudo().create_or_update_provider(vals, source='web')
+        base_url = request.env['ir.config_parameter'].sudo().get_param(
+            'whatsapp_turismo_bot.tourism_portal_base_url'
+        ) or request.httprequest.host_url.rstrip('/')
 
-        return request.render('whatsapp_turismo_bot.tourism_register_success_template')
+        return request.render('whatsapp_turismo_bot.tourism_register_success_template', {
+            'provider': provider,
+            'profile_url': f"{base_url}/tourism/provider/{provider.id}",
+        })
