@@ -1,13 +1,17 @@
 import json
 import logging
+import re
 
-from odoo import fields, http
+from odoo import _, fields, http
 from odoo.http import request
 
 _logger = logging.getLogger(__name__)
 
 MAX_UNKNOWN_RETRIES = 5
 CANCEL_KEYWORDS = {'cancelar', 'cancel', 'salir', 'detener', 'stop'}
+MENU_KEYWORDS = {'menu', 'ayuda', 'help'}
+RESET_KEYWORDS = {'hola', 'hi', 'inicio', 'reiniciar', 'empezar'}
+UPDATE_KEYWORDS = {'actualizar', 'editar', 'modificar'}
 
 
 class WhatsAppWebhookController(http.Controller):
@@ -191,7 +195,10 @@ class WhatsAppWebhookController(http.Controller):
 
                             session.next_state(
                                 'completed',
-                                whatsapp_service.build_reply_for_state('asking_profile_photo')
+                                '%s\n\n🔗 %s' % (
+                                    whatsapp_service.build_reply_for_state('asking_profile_photo'),
+                                    self._build_profile_url(session.provider_id),
+                                )
                             )
                             _logger.warning(
                                 'WA SESSION COMPLETED BY IMAGE | session_id=%s | new_state=%s',
@@ -262,6 +269,19 @@ class WhatsAppWebhookController(http.Controller):
             session.id, session.phone, current_state, provider.id if provider else False, user_text
         )
 
+        if normalized_text in MENU_KEYWORDS:
+            session.next_state(current_state, whatsapp_service.build_reply_for_state('menu'))
+            return self._send_session_reply(session, whatsapp_service, payload_ctx)
+
+        if normalized_text in RESET_KEYWORDS and current_state != 'start':
+            session.write({
+                'state': 'start',
+                'retry_count': 0,
+                'category_options': False,
+                'last_validation_error': False,
+            })
+            current_state = 'start'
+
         if normalized_text in CANCEL_KEYWORDS:
             session.write({'active': False})
             session.next_state(
@@ -274,6 +294,11 @@ class WhatsAppWebhookController(http.Controller):
             )
             return self._send_session_reply(session, whatsapp_service, payload_ctx)
 
+        if normalized_text in UPDATE_KEYWORDS and provider:
+            session.write({'retry_count': 0})
+            session.next_state('asking_business_name', whatsapp_service.build_reply_for_state('start'))
+            return self._send_session_reply(session, whatsapp_service, payload_ctx)
+
         if current_state == 'start':
             session.next_state('asking_business_name', whatsapp_service.build_reply_for_state('start'))
             _logger.warning(
@@ -282,6 +307,9 @@ class WhatsAppWebhookController(http.Controller):
             )
 
         elif current_state == 'asking_business_name':
+            if len((user_text or '').strip()) < 3:
+                session.next_state(current_state, 'Necesito un nombre de negocio más claro (mínimo 3 caracteres).')
+                return self._send_session_reply(session, whatsapp_service, payload_ctx)
             provider = onboarding_service.create_or_update_provider(
                 {
                     'name': user_text,
@@ -296,6 +324,7 @@ class WhatsAppWebhookController(http.Controller):
                 session.id, provider.id, user_text
             )
 
+            session.write({'retry_count': 0})
             session.next_state('asking_responsible_name', whatsapp_service.build_reply_for_state(current_state))
             _logger.warning(
                 'WA STATE CHANGE | session_id=%s | from=%s | to=%s',
@@ -303,22 +332,33 @@ class WhatsAppWebhookController(http.Controller):
             )
 
         elif current_state == 'asking_responsible_name' and provider:
+            if len((user_text or '').strip()) < 5:
+                session.next_state(current_state, 'Por favor envía el nombre completo del responsable (mínimo 5 caracteres).')
+                return self._send_session_reply(session, whatsapp_service, payload_ctx)
             provider.write({'responsible_name': user_text})
             _logger.warning(
                 'WA PROVIDER UPDATE | provider_id=%s | responsible_name=%s',
                 provider.id, user_text
             )
 
-            session.next_state('asking_category', whatsapp_service.build_reply_for_state(current_state))
+            category_prompt, category_mapping = self._build_category_prompt()
+            session.write({'category_options': category_mapping, 'retry_count': 0})
+            session.next_state('asking_category', category_prompt)
             _logger.warning(
                 'WA STATE CHANGE | session_id=%s | from=%s | to=%s',
                 session.id, current_state, session.state
             )
 
         elif current_state == 'asking_category' and provider:
-            category = request.env['tourism.provider.category'].sudo().search(
-                [('name', 'ilike', user_text)], limit=1
-            )
+            category = False
+            if normalized_text.isdigit() and session.category_options:
+                category_id = session.category_options.get(normalized_text)
+                if category_id:
+                    category = request.env['tourism.provider.category'].sudo().browse(category_id)
+            if not category:
+                category = request.env['tourism.provider.category'].sudo().search(
+                    [('name', 'ilike', user_text)], limit=1
+                )
 
             _logger.warning(
                 'WA CATEGORY SEARCH | text=%s | found_category_id=%s',
@@ -331,20 +371,34 @@ class WhatsAppWebhookController(http.Controller):
                     'WA PROVIDER UPDATE | provider_id=%s | category_id=%s',
                     provider.id, category.id
                 )
-
-            session.next_state('asking_phone', whatsapp_service.build_reply_for_state(current_state))
+                session.write({'retry_count': 0, 'category_options': False})
+                session.next_state('asking_phone', whatsapp_service.build_reply_for_state(current_state))
+            else:
+                category_prompt, category_mapping = self._build_category_prompt()
+                session.write({'category_options': category_mapping})
+                session.next_state(
+                    current_state,
+                    'No encontré esa categoría todavía.\n%s' % category_prompt
+                )
             _logger.warning(
                 'WA STATE CHANGE | session_id=%s | from=%s | to=%s',
                 session.id, current_state, session.state
             )
 
         elif current_state == 'asking_phone' and provider:
+            if not self._looks_like_phone(user_text):
+                session.next_state(
+                    current_state,
+                    'Ese teléfono no parece válido. Intenta con formato internacional (ej: +521234567890).'
+                )
+                return self._send_session_reply(session, whatsapp_service, payload_ctx)
             provider.write({'phone': user_text, 'mobile': user_text})
             _logger.warning(
                 'WA PROVIDER UPDATE | provider_id=%s | phone=%s',
                 provider.id, user_text
             )
 
+            session.write({'retry_count': 0})
             session.next_state('asking_email', whatsapp_service.build_reply_for_state(current_state))
             _logger.warning(
                 'WA STATE CHANGE | session_id=%s | from=%s | to=%s',
@@ -352,12 +406,16 @@ class WhatsAppWebhookController(http.Controller):
             )
 
         elif current_state == 'asking_email' and provider:
+            if not self._looks_like_email(user_text):
+                session.next_state(current_state, 'El correo no tiene formato válido. Ejemplo: negocio@correo.com')
+                return self._send_session_reply(session, whatsapp_service, payload_ctx)
             provider.write({'email': user_text})
             _logger.warning(
                 'WA PROVIDER UPDATE | provider_id=%s | email=%s',
                 provider.id, user_text
             )
 
+            session.write({'retry_count': 0})
             session.next_state('asking_location', whatsapp_service.build_reply_for_state(current_state))
             _logger.warning(
                 'WA STATE CHANGE | session_id=%s | from=%s | to=%s',
@@ -365,12 +423,16 @@ class WhatsAppWebhookController(http.Controller):
             )
 
         elif current_state == 'asking_location' and provider:
+            if len((user_text or '').strip()) < 5:
+                session.next_state(current_state, 'Compárteme una ubicación más específica (mínimo 5 caracteres).')
+                return self._send_session_reply(session, whatsapp_service, payload_ctx)
             provider.write({'location_text': user_text})
             _logger.warning(
                 'WA PROVIDER UPDATE | provider_id=%s | location=%s',
                 provider.id, user_text
             )
 
+            session.write({'retry_count': 0})
             session.next_state('asking_description', whatsapp_service.build_reply_for_state(current_state))
             _logger.warning(
                 'WA STATE CHANGE | session_id=%s | from=%s | to=%s',
@@ -378,12 +440,19 @@ class WhatsAppWebhookController(http.Controller):
             )
 
         elif current_state == 'asking_description' and provider:
+            if len((user_text or '').strip()) < 20:
+                session.next_state(
+                    current_state,
+                    'Necesito un poco más de detalle para ayudarte mejor (mínimo 20 caracteres).'
+                )
+                return self._send_session_reply(session, whatsapp_service, payload_ctx)
             provider.write({'description': user_text, 'approval_state': 'pending'})
             _logger.warning(
                 'WA PROVIDER UPDATE | provider_id=%s | description=%s | approval_state=pending',
                 provider.id, user_text
             )
 
+            session.write({'retry_count': 0})
             session.next_state('asking_profile_photo', whatsapp_service.build_reply_for_state(current_state))
             _logger.warning(
                 'WA STATE CHANGE | session_id=%s | from=%s | to=%s',
@@ -454,6 +523,33 @@ class WhatsAppWebhookController(http.Controller):
                 'WA NO BOT MESSAGE TO SEND | session_id=%s | phone=%s | state=%s',
                 session.id, session.phone, session.state
             )
+
+    def _looks_like_email(self, text):
+        if not text:
+            return False
+        return bool(re.match(r'^[^@\s]+@[^@\s]+\.[^@\s]+$', text.strip()))
+
+    def _looks_like_phone(self, text):
+        if not text:
+            return False
+        digits = ''.join(ch for ch in text if ch.isdigit())
+        return 7 <= len(digits) <= 15
+
+    def _build_profile_url(self, provider):
+        base_url = request.env['ir.config_parameter'].sudo().get_param(
+            'whatsapp_turismo_bot.tourism_portal_base_url'
+        ) or request.httprequest.host_url.rstrip('/')
+        return f"{base_url}/tourism/provider/{provider.id}"
+
+    def _build_category_prompt(self):
+        categories = request.env['tourism.provider.category'].sudo().search([('active', '=', True)], limit=8)
+        lines = [_('Elige tu categoría respondiendo solo el número:')]
+        mapping = {}
+        for index, category in enumerate(categories, start=1):
+            lines.append(f'{index}. {category.name}')
+            mapping[str(index)] = category.id
+        lines.append(_('Si no aparece, escribe el nombre de tu categoría.'))
+        return '\n'.join(lines), mapping
 
 
 class JsonEncoder(json.JSONEncoder):

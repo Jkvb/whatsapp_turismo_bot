@@ -103,18 +103,19 @@ class WhatsappService(models.AbstractModel):
 
     def build_reply_for_state(self, state):
         prompts = {
-            'start': '¡Hola! Bienvenido/a al registro turístico. ¿Cuál es el nombre de tu negocio?',
-            'asking_business_name': 'Gracias. Ahora indícame el nombre del responsable.',
-            'asking_responsible_name': 'Perfecto. ¿Qué categoría turística te describe mejor?',
-            'asking_category': 'Anotado. ¿Cuál es tu teléfono de contacto?',
-            'asking_phone': 'Gracias. ¿Cuál es tu correo electrónico?',
-            'asking_email': '¿En qué ubicación operas?',
-            'asking_location': 'Cuéntame una descripción breve de tus servicios.',
-            'asking_description': 'Por favor envíame una foto de perfil de tu negocio.',
-            'asking_profile_photo': '¡Listo! Tu registro quedó en revisión. Te avisaremos cuando esté aprobado.',
+            'start': '¡Hola! 👋 Soy tu asistente de registro turístico.\nEscribe el *nombre de tu negocio* para comenzar.\n\nTip: en cualquier momento escribe *menu* para ver comandos.',
+            'asking_business_name': '¡Excelente! Ahora indícame el *nombre del responsable* del negocio.',
+            'asking_responsible_name': 'Perfecto. Te mostraré categorías para que solo elijas una opción.',
+            'asking_category': '✅ Categoría registrada.\nAhora envíame tu *teléfono de contacto* (ej: +521234567890).',
+            'asking_phone': 'Muy bien. Ahora comparte tu *correo electrónico*.',
+            'asking_email': 'Gracias. ¿En qué *ubicación* operas? (ciudad/municipio y estado)',
+            'asking_location': 'Cuéntame una *descripción breve* de tus servicios (mínimo 20 caracteres).',
+            'asking_description': '¡Vamos super bien! 📸\nPor favor envíame una *foto de perfil* de tu negocio.',
+            'asking_profile_photo': '¡Listo! ✅ Tu perfil quedó en revisión.\nTe comparto tu enlace de perfil al final para que puedas revisarlo.',
             'completed': 'Tu información ya fue registrada. Si quieres actualizar datos responde "actualizar".',
             'cancelled': 'Proceso cancelado ✅. Si deseas empezar de nuevo, escribe "hola".',
             'too_many_retries': 'Tuvimos varios intentos sin lograr avanzar. Cancelé este registro para evitar que se trabe. Escribe "hola" para iniciar otra vez.',
             'asking_profile_photo_retry': 'Estoy esperando una *foto* de perfil del negocio. Si quieres detener el registro, responde "cancelar".',
+            'menu': 'Comandos disponibles:\n• *hola* o *reiniciar*: iniciar registro\n• *menu*: ver esta ayuda\n• *cancelar*: salir del flujo\n• *actualizar*: iniciar actualización guiada',
         }
         return prompts.get(state, 'Gracias por tu mensaje. Te responderemos pronto.')
